@@ -567,10 +567,9 @@ public class MySQLAccess {
 
 
             preparedStatement = connect
-                    .prepareStatement("SELECT * FROM telegram.faq_keyword, telegram_faq, faq_topics_template where \n" +
-                            "telegram_faq.faqID = faq_topics_template.faqID\n" +
-                            "and faq_keyword.faqTopicID = faq_topics_template.faqTopicID\n" +
-                            " and telegram_faq.faqID = ? ;");
+                    .prepareStatement("SELECT * FROM  telegram_faq inner join faq_topics_template on  telegram_faq.faqID = faq_topics_template.faqID " +
+                            " left join telegram.faq_keyword on faq_keyword.faqTopicID = faq_topics_template.faqTopicID " +
+                            " where telegram_faq.faqID = ? ;");
             preparedStatement.setInt(1, faqTopic);
             resultSet = preparedStatement.executeQuery();
             List <FaqDTO> faqList = new ArrayList();
@@ -579,6 +578,7 @@ public class MySQLAccess {
                 String keyword = resultSet.getString("faqKeyword");
                 String faqQuestion = resultSet.getString("faqQuestion");
                 String faqAnswer = resultSet.getString("faqAnswer");
+                System.out.println(keyword);
                 dto.setFaqKeyword(keyword);
                 dto.setFaqQuestion(faqQuestion);
                 dto.setFaqAnswer(faqAnswer);

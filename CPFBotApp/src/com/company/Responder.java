@@ -254,7 +254,7 @@ public class Responder extends TelegramLongPollingBot {
                     TreeMap<Double, FaqDTO> sortedAnswer = new TreeMap<>();
                     for(int i = 0 ; i< faqList.size() && flag==false ; i++  ) {
                        String  question =   faqList.get(i).getFaqQuestion();
-                        double cosineDistance = new CosineDistance().apply(question, userMessage);
+                        double cosineDistance = new CosineDistance().apply(question.toLowerCase(), userMessage.toLowerCase());
                      double percentage =   Math.round((1 - cosineDistance) * 100);
                         if(percentage == 100.0){
                          reply = faqList.get(i).getFaqAnswer();
@@ -274,18 +274,32 @@ public class Responder extends TelegramLongPollingBot {
 
                     } else{
                        String replyKeyword = "";
+                        TreeMap<Double, FaqDTO> sortedAnswerKeyword = new TreeMap<>();
                         for(int i = 0 ; i< faqList.size() ; i++  ) {
                             String keyword = faqList.get(i).getFaqKeyword();
-                           if(keyword.equalsIgnoreCase(userMessage)) {
-                               replyKeyword = faqList.get(i).getFaqAnswer();
-                            break;
-                           }
-
+                            if( keyword!=null) {
+                                double cosineDistance = new CosineDistance().apply(keyword.toLowerCase(), userMessage.toLowerCase());
+                                double percentage = Math.round((1 - cosineDistance) * 100);
+                                if (percentage == 100.0) {
+                                    replyKeyword = faqList.get(i).getFaqAnswer();
+                                    break;
+                                } else if (percentage >= 50.0) {
+                                    sortedAnswerKeyword.put(percentage, faqList.get(i));
+                                }
+                            }
                         }
                         if(!replyKeyword.isEmpty()) {
 
                             sendMessage.setText(replyKeyword);
+                        } else if(!sortedAnswerKeyword.isEmpty())
+                        {
+                            Map.Entry value =     sortedAnswerKeyword.lastEntry();
+                            FaqDTO valueAnswer = (FaqDTO) value.getValue();
+                            sendMessage.setText("Your query is "+value.getKey()+ "% similar to "+ valueAnswer.getFaqQuestion()+"\n"+valueAnswer.getFaqAnswer());
+
                         }
+
+
                         else {
                             sendMessage.setText("I am sorry! I don't understand this query! You may try another query or Click FAQ to head back to list of topics and CPF BOT for forms");
 
